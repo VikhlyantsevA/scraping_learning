@@ -1,7 +1,7 @@
 # Развернуть у себя на компьютере/виртуальной машине/хостинге MongoDB и реализовать функцию, которая будет добавлять
 # только новые вакансии/продукты в вашу базу.
 
-from operators import HHScrapper
+from my_lib.operators.parse_utils import HHScrapper
 
 if __name__ == '__main__':
     search_params = [
