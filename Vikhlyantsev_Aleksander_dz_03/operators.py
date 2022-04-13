@@ -10,7 +10,7 @@ import time
 import re
 from typing import List, Dict
 
-from utils import hash_struct
+from my_lib.utils import hash_struct
 
 
 class WebsiteScrapper(ABC):
