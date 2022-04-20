@@ -1,6 +1,3 @@
-from pymongo import MongoClient
-from pymongo.errors import DuplicateKeyError
-
 from abc import ABC, abstractmethod
 
 from bs4 import BeautifulSoup as bs
@@ -8,9 +5,8 @@ from urllib.parse import urlencode, urljoin
 import requests
 import time
 import re
-from typing import List, Dict
 
-from utils import hash_struct
+from .db_utils import MongodbUtils
 
 
 class WebsiteScrapper(ABC):
@@ -25,17 +21,6 @@ class WebsiteScrapper(ABC):
     @abstractmethod
     def parse_data(self, *args, **kwargs): ...
 
-    def save_to_mongodb(self, database, collection, data: List[Dict]):
-        client = MongoClient('localhost', 27017)
-        db = client[database]
-        collection = db[collection]
-        for document in data:
-            document_id = hash_struct(document)
-            try:
-                collection.insert_one({'_id': document_id, **document})
-            except DuplicateKeyError:
-                print(f'Document with key {document_id} already exists.')
-
 
 class HHScrapper(WebsiteScrapper):
     def __init__(self,
@@ -45,6 +30,7 @@ class HHScrapper(WebsiteScrapper):
         self._headers = {'user-agent': user_agent}
         self._base_url = base_url
         self._endpoint = endpoint
+        self.m_utils = MongodbUtils()
 
     def parse_data(self, search_params: dict, limit: int = None, **kwargs):
         max_retries = kwargs.get('max_retries', 8)
@@ -89,7 +75,7 @@ class HHScrapper(WebsiteScrapper):
                     'website_url': url
                 })
 
-            self.save_to_mongodb('vacancies', 'hh', page_res)
+            self.m_utils.save_documents('vacancies', 'hh', page_res)
 
             if limit:
                 if page >= limit:
